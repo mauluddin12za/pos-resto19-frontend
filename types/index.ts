@@ -125,7 +125,10 @@ export interface CartInterface {
 }
 
 export interface CartItemInterface {
+  // menu id
   id: number;
+  // unique cart entry id so multiple same-menu items are distinct
+  uid: string;
   imageUrl: string;
   name: string;
   price: number;
@@ -140,14 +143,16 @@ export interface AddToCartPayload {
   product: MenuInterface;
   price?: number;
   notes?: string;
+  // when true, always create a new cart row instead of merging
+  forceNew?: boolean;
 }
 export interface CartItemPropsInterface {
   item: CartItemInterface;
   stockMessage: string;
-  onQuantityChange: (id: number, quantity: number) => void;
-  onPriceChange: (id: number, price: number) => void;
-  onNotesChange: (id: number, notes: string) => void;
-  onRemove: (id: number) => void;
+  onQuantityChange: (uidOrId: string | number, quantity: number) => void;
+  onPriceChange: (uidOrId: string | number, price: number) => void;
+  onNotesChange: (uidOrId: string | number, notes: string) => void;
+  onRemove: (uidOrId: string | number) => void;
 }
 
 export interface ShowCartModalButtonProps {
