@@ -1,6 +1,5 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import { priceFormat } from "@/utils/priceFormat";
 import { CartInterface, AddToCartPayload, MenuInterface } from "@/types";
@@ -28,12 +27,6 @@ export default function ProductCard({
       });
     } else {
       onQuantityChange(product.menuId, quantity + 1);
-    }
-  };
-
-  const handleRemove = () => {
-    if (cartItem && quantity > 0) {
-      onQuantityChange(product.menuId, quantity - 1);
     }
   };
 
@@ -71,41 +64,15 @@ export default function ProductCard({
       </div>
 
       {/* ACTION */}
-      <div className="mt-3 flex items-center justify-center gap-3">
-        {quantity > 0 ? (
-          <>
-            <button
-              onClick={handleRemove}
-              disabled={quantity === 0}
-              className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-primary text-primary transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
-              type="button"
-            >
-              <Minus className="h-4 w-4" />
-            </button>
-
-            <span className="min-w-6 text-center text-sm font-semibold tabular-nums text-foreground">
-              {quantity}
-            </span>
-
-            <button
-              onClick={handleAdd}
-              disabled={product.stock === 0}
-              className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-primary text-primary transition-colors hover:bg-primary hover:text-primary-foreground cursor-pointer disabled:cursor-not-allowed"
-              type="button"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </>
-        ) : (
-          <button
-            onClick={handleAdd}
-            disabled={product.stock === 0}
-            className="w-full h-8 rounded-full border-2 border-primary text-primary text-sm font-medium transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
-            type="button"
-          >
-            Order
-          </button>
-        )}
+      <div className="mt-3 flex items-center justify-center gap-3 w-full">
+        <button
+          onClick={handleAdd}
+          disabled={product.stock === 0}
+          className="w-full h-8 rounded-full border-2 border-primary text-primary text-sm font-medium transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+          type="button"
+        >
+          Order{quantity > 0 ? ` · ${quantity}` : ""}
+        </button>
       </div>
     </div>
   );
