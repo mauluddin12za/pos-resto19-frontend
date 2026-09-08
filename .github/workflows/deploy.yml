@@ -38,8 +38,18 @@ jobs:
               git reset --hard origin/main
               git clean -fd
 
+              # Ensure NVM is installed on the remote server (install if missing) and use Node 20
               export NVM_DIR="$HOME/.nvm"
+              if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+                echo "nvm not found, installing nvm..."
+                # install nvm (idempotent) - pinned to a specific nvm release
+                curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+              fi
+
+              # Load nvm and install/use Node 20
               [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+              nvm install 20 || true
+              nvm alias default 20 || true
               nvm use 20
 
               npm ci
