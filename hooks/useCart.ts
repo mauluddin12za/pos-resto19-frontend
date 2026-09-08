@@ -72,10 +72,6 @@ const useCart = () => {
     setCart((prev) => {
       const finalPrice = price ?? product.price;
 
-      const existing = prev.cartItems.find(
-        (item) => item.id === product.menuId,
-      );
-
       if (product.stock <= 0) {
         setStockMessage(`Maaf, stok "${product.menuName}" sedang habis.`);
         return prev;
@@ -83,25 +79,10 @@ const useCart = () => {
 
       let updatedItems: CartItemInterface[];
 
-      if (existing) {
-        if (existing.quantity >= existing.stock) {
-          setStockMessage(
-            `Stok "${product.menuName}" tidak mencukupi. Maksimal ${existing.stock} item.`,
-          );
-
-          return prev;
-        }
-
-        updatedItems = prev.cartItems.map((item) =>
-          item.id === product.menuId
-            ? {
-                ...item,
-                quantity: item.quantity + 1,
-                price: finalPrice,
-              }
-            : item,
-        );
-      } else {
+      // Check if product has custom price enabled
+      if (product.isCustomPrice) {
+        // For custom price items, always create a new entry even if the same product exists
+        // This allows adding the same product with different prices as separate items
         updatedItems = [
           ...prev.cartItems,
           {
@@ -116,6 +97,44 @@ const useCart = () => {
             stock: product.stock,
           },
         ];
+      } else {
+        // For regular items, merge with existing if found
+        const existing = prev.cartItems.find(
+          (item) => item.id === product.menuId && !item.isCustomPrice,
+        );
+
+        if (existing) {
+          if (existing.quantity >= existing.stock) {
+            setStockMessage(
+              `Stok "${product.menuName}" tidak mencukupi. Maksimal ${existing.stock} item.`,
+            );
+            return prev;
+          }
+
+          updatedItems = prev.cartItems.map((item) =>
+            item.id === product.menuId && !item.isCustomPrice
+              ? {
+                  ...item,
+                  quantity: item.quantity + 1,
+                }
+              : item,
+          );
+        } else {
+          updatedItems = [
+            ...prev.cartItems,
+            {
+              id: product.menuId,
+              imageUrl: product.menuImageUrl,
+              name: product.menuName,
+              price: finalPrice,
+              isCustomPrice: product.isCustomPrice,
+              quantity: 1,
+              subtotal: finalPrice,
+              notes: notes ?? "",
+              stock: product.stock,
+            },
+          ];
+        }
       }
 
       const { updatedCartItems, total } = calculateTotals(updatedItems);
