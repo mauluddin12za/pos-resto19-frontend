@@ -17,17 +17,15 @@ export default function ProductCard({
   cart,
   onQuantityChange,
 }: Readonly<ProductCardPropsInterface>) {
-  const cartItem = cart.cartItems.find((item) => item.id === product.menuId);
-  const quantity = cartItem?.quantity ?? 0;
+  // Sum quantity across all cart items with the same product id so ProductCard shows total
+  const quantity = cart.cartItems
+    .filter((item) => item.id === product.menuId)
+    .reduce((sum, item) => sum + item.quantity, 0);
 
+  // Always add a new cart entry when clicking Order (do not merge/increment existing item here).
+  // We mark the product as isCustomPrice to force useCart to create a new entry instead of merging.
   const handleAdd = () => {
-    if (!cartItem) {
-      onAddToCart({
-        product,
-      });
-    } else {
-      onQuantityChange(product.menuId, quantity + 1);
-    }
+    onAddToCart({ product: { ...product, isCustomPrice: true } as MenuInterface });
   };
 
   return (
