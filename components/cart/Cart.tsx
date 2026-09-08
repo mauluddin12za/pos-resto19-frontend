@@ -12,10 +12,10 @@ export interface CartPropsInterface {
   orderId: number | null;
   cartItems: CartItemInterface[];
   stockMessage: string;
-  onRemove: (id: number) => void;
-  onQuantityChange: (id: number, quantity: number) => void;
-  onPriceChange: (id: number, price: number) => void;
-  onNotesChange: (id: number, notes: string) => void;
+  onRemove: (uidOrId: string | number | null) => void;
+  onQuantityChange: (uidOrId: string | number, quantity: number) => void;
+  onPriceChange: (uidOrId: string | number, price: number) => void;
+  onNotesChange: (uidOrId: string | number, notes: string) => void;
   onOrder: (onClose: () => void) => void;
   isSubmitting: boolean;
   closeCart: () => void;
@@ -63,7 +63,7 @@ const Cart: React.FC<CartPropsInterface> = ({
         {cartItems.length > 0 && (
           <button
             onClick={handleClearAll}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-destructive/30 text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-destructive/30 text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground cu[...]"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -87,7 +87,7 @@ const Cart: React.FC<CartPropsInterface> = ({
         ) : (
           <ul className="flex flex-col gap-3">
             {cartItems.map((item: CartItemInterface) => (
-              <li key={item.id}>
+              <li key={item.uid}>
                 <CartItem
                   item={item}
                   stockMessage={stockMessage}
