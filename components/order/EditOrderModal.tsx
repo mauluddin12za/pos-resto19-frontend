@@ -239,7 +239,7 @@ const EditOrderModal = ({
                             type="number"
                             min={0}
                             value={line.price}
-                            onChange={(e) => setLines((prev) => prev.map((l) => (l.id === id ? { ...l, price: Number(e.target.value) } : l))))}
+                            onChange={(e) => setLines((prev) => prev.map((l) => (l.id === line.id ? { ...l, price: Number(e.target.value) } : l)))}
                             placeholder="0"
                             className="w-full border-primary focus:ring-primary/20 rounded-md"
                           />
@@ -251,5 +251,3 @@ const EditOrderModal = ({
                       )}
                     </div>
                   </div>
-
-        {/* The rest of the file unchanged */}
