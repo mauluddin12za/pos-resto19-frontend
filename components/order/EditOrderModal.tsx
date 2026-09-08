@@ -120,6 +120,7 @@ const EditOrderModal = ({
       ),
     );
   };
+
   const changePrice = (id: number, price: number) => {
     setLines((prev) => prev.map((l) => (l.id === id ? { ...l, price } : l)));
   };
@@ -239,7 +240,7 @@ const EditOrderModal = ({
                             type="number"
                             min={0}
                             value={line.price}
-                            onChange={(e) => setLines((prev) => prev.map((l) => (l.id === line.id ? { ...l, price: Number(e.target.value) } : l)))}
+                            onChange={(e) => changePrice(line.id, Number(e.target.value))}
                             placeholder="0"
                             className="w-full border-primary focus:ring-primary/20 rounded-md"
                           />
@@ -251,3 +252,61 @@ const EditOrderModal = ({
                       )}
                     </div>
                   </div>
+
+                  <div className="flex items-center gap-2">
+                    <FormInput
+                      placeholder="Catatan"
+                      value={line.notes}
+                      onChange={(e) => changeNotes(line.id, e.target.value)}
+                      className="flex-1 rounded-md"
+                    />
+
+                    <div className="flex items-center gap-1 border rounded-lg px-2 py-1">
+                      <button
+                        onClick={() => changeQty(line.id, line.quantity - 1)}
+                        className="hover:bg-gray-200 rounded p-1"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="w-8 text-center text-sm font-semibold">{line.quantity}</span>
+                      <button
+                        onClick={() => changeQty(line.id, line.quantity + 1)}
+                        className="hover:bg-gray-200 rounded p-1"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => removeLine(line.id)}
+                      className="text-red-600 hover:bg-red-50 rounded-lg p-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Payment Method */}
+        <div className="border-t pt-4">
+          <PaymentMethod
+            paymentMethod={paymentMethod}
+            setPaymentMethod={setPaymentMethod}
+            paymentOptions={paymentOptions}
+          />
+        </div>
+
+        {/* Total */}
+        <div className="border-t pt-4 flex justify-between items-center">
+          <p className="text-sm font-semibold">Total:</p>
+          <p className="text-lg font-bold text-primary">{priceFormat(total)}</p>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+export default EditOrderModal;
