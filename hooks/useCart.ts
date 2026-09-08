@@ -45,6 +45,12 @@ const calculateTotals = (cartItems: CartItemInterface[]) => {
   };
 };
 
+// generate unique id for cart entries
+const generateUid = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? (crypto as any).randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
 const useCart = () => {
   const [cart, setCart] = useState<CartInterface>({
     total: "0",
@@ -67,7 +73,7 @@ const useCart = () => {
     }
   }, [cart]);
 
-  const handleAddToCart = ({ product, price, notes }: AddToCartPayload) => {
+  const handleAddToCart = ({ product, price, notes, forceNew }: AddToCartPayload) => {
     setStockMessage("");
     setCart((prev) => {
       const finalPrice = price ?? product.price;
@@ -77,15 +83,45 @@ const useCart = () => {
         return prev;
       }
 
-      let updatedItems: CartItemInterface[];
+      let updatedItems: CartItemInterface[] = [...prev.cartItems];
 
-      // Check if product has custom price enabled
-      if (product.isCustomPrice) {
-        // For custom price items, always create a new entry even if the same product exists
-        // This allows adding the same product with different prices as separate items
-        updatedItems = [
-          ...prev.cartItems,
-          {
+      // If product.isCustomPrice OR forceNew is true, always create a new entry
+      if (product.isCustomPrice || forceNew) {
+        updatedItems.push({
+          uid: generateUid(),
+          id: product.menuId,
+          imageUrl: product.menuImageUrl,
+          name: product.menuName,
+          price: finalPrice,
+          isCustomPrice: product.isCustomPrice,
+          quantity: 1,
+          subtotal: finalPrice,
+          notes: notes ?? "",
+          stock: product.stock,
+        });
+      } else {
+        // Try to find first existing non-custom item with same menu id
+        const existingIndex = prev.cartItems.findIndex(
+          (item) => item.id === product.menuId && !item.isCustomPrice,
+        );
+
+        if (existingIndex !== -1) {
+          const existing = prev.cartItems[existingIndex];
+          if (existing.quantity >= existing.stock) {
+            setStockMessage(
+              `Stok "${product.menuName}" tidak mencukupi. Maksimal ${existing.stock} item.`,
+            );
+            return prev;
+          }
+
+          updatedItems = prev.cartItems.map((item, idx) =>
+            idx === existingIndex
+              ? { ...item, quantity: item.quantity + 1 }
+              : item,
+          );
+        } else {
+          updatedItems.push({
+            uid: generateUid(),
             id: product.menuId,
             imageUrl: product.menuImageUrl,
             name: product.menuName,
@@ -95,45 +131,7 @@ const useCart = () => {
             subtotal: finalPrice,
             notes: notes ?? "",
             stock: product.stock,
-          },
-        ];
-      } else {
-        // For regular items, merge with existing if found
-        const existing = prev.cartItems.find(
-          (item) => item.id === product.menuId && !item.isCustomPrice,
-        );
-
-        if (existing) {
-          if (existing.quantity >= existing.stock) {
-            setStockMessage(
-              `Stok "${product.menuName}" tidak mencukupi. Maksimal ${existing.stock} item.`,
-            );
-            return prev;
-          }
-
-          updatedItems = prev.cartItems.map((item) =>
-            item.id === product.menuId && !item.isCustomPrice
-              ? {
-                  ...item,
-                  quantity: item.quantity + 1,
-                }
-              : item,
-          );
-        } else {
-          updatedItems = [
-            ...prev.cartItems,
-            {
-              id: product.menuId,
-              imageUrl: product.menuImageUrl,
-              name: product.menuName,
-              price: finalPrice,
-              isCustomPrice: product.isCustomPrice,
-              quantity: 1,
-              subtotal: finalPrice,
-              notes: notes ?? "",
-              stock: product.stock,
-            },
-          ];
+          });
         }
       }
 
@@ -147,13 +145,21 @@ const useCart = () => {
     });
   };
 
-  const handleRemove = (id: number | null) => {
+  // uidOrId: support 0 (clear all) or uid for per-row operations
+  const handleRemove = (uidOrId: string | number | null) => {
     setCart((prev) => {
-      if (id == null) return prev;
+      if (uidOrId == null) return prev;
 
-      const updatedItems =
-        id === 0 ? [] : prev.cartItems.filter((item) => item.id !== id);
+      if (uidOrId === 0) {
+        const { updatedCartItems, total } = calculateTotals([]);
+        return {
+          ...prev,
+          cartItems: updatedCartItems,
+          total,
+        };
+      }
 
+      const updatedItems = prev.cartItems.filter((item) => item.uid !== uidOrId);
       const { updatedCartItems, total } = calculateTotals(updatedItems);
 
       return {
@@ -164,16 +170,16 @@ const useCart = () => {
     });
   };
 
-  const handleQuantityChange = (id: number, quantity: number) => {
+  const handleQuantityChange = (uidOrId: string | number, quantity: number) => {
     if (quantity <= 0) {
-      return handleRemove(id);
+      return handleRemove(uidOrId);
     }
 
     setStockMessage("");
 
     setCart((prev) => {
       const updatedItems = prev.cartItems.map((item) => {
-        if (item.id !== id) return item;
+        if (item.uid !== uidOrId) return item;
 
         if (quantity > item.stock) {
           setStockMessage(
@@ -197,10 +203,10 @@ const useCart = () => {
     });
   };
 
-  const handleNotesChange = (id: number, notes: string) => {
+  const handleNotesChange = (uidOrId: string | number, notes: string) => {
     setCart((prev) => {
       const updatedItems = prev.cartItems.map((item) =>
-        item.id === id
+        item.uid === uidOrId
           ? {
               ...item,
               notes,
@@ -218,10 +224,10 @@ const useCart = () => {
     });
   };
 
-  const handlePriceChange = (id: number, price: number) => {
+  const handlePriceChange = (uidOrId: string | number, price: number) => {
     setCart((prev) => {
       const updatedItems = prev.cartItems.map((item) =>
-        item.id === id
+        item.uid === uidOrId
           ? {
               ...item,
               price,
