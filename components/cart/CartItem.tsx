@@ -15,22 +15,22 @@ export default function CartItem({
   const [isEditingPrice, setIsEditingPrice] = useState(false);
   const [draftPrice, setDraftPrice] = useState(item.price.toString());
 
-  const handleIncrement = (id: number, qty: number) => {
-    onQuantityChange(id, qty + 1);
+  const handleIncrement = (uid: string | number, qty: number) => {
+    onQuantityChange(uid, qty + 1);
   };
 
-  const handleDecrement = (id: number, qty: number) => {
+  const handleDecrement = (uid: string | number, qty: number) => {
     if (qty > 1) {
-      onQuantityChange(id, qty - 1);
+      onQuantityChange(uid, qty - 1);
     } else {
-      onRemove(id);
+      onRemove(uid);
     }
   };
 
   const commitPrice = () => {
     const parsed = Number(draftPrice);
     if (!Number.isNaN(parsed) && parsed >= 0) {
-      onPriceChange(item.id, parsed);
+      onPriceChange(item.uid, parsed);
     } else {
       setDraftPrice(item.price.toString());
     }
@@ -125,7 +125,7 @@ export default function CartItem({
         {/* QUANTITY */}
         <div className="flex items-center gap-1.5">
           <button
-            onClick={() => handleDecrement(item.id, item.quantity)}
+            onClick={() => handleDecrement(item.uid, item.quantity)}
             className="flex h-6 w-6 items-center justify-center rounded-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground"
           >
             <Minus className="h-3 w-3" />
@@ -136,7 +136,7 @@ export default function CartItem({
           </span>
 
           <button
-            onClick={() => handleIncrement(item.id, item.quantity)}
+            onClick={() => handleIncrement(item.uid, item.quantity)}
             className="flex h-6 w-6 items-center justify-center rounded-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground"
           >
             <Plus className="h-3 w-3" />
@@ -149,13 +149,13 @@ export default function CartItem({
         <input
           type="text"
           value={item.notes || ""}
-          onChange={(e) => onNotesChange(item.id, e.target.value)}
+          onChange={(e) => onNotesChange(item.uid, e.target.value)}
           placeholder="Tulis catatan..."
           className="flex-1 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
 
         <button
-          onClick={() => onRemove(item.id)}
+          onClick={() => onRemove(item.uid)}
           className="flex h-7 w-7 items-center justify-center rounded-md border border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground"
         >
           <Trash2 className="h-3.5 w-3.5" />
